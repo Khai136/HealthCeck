@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hasil Analisis - HealthCheck</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+
+<div class="dashboard">
+    <div class="result-card-full-horizontal">
+        
+        <!-- Header -->
+        <div class="result-header-compact">
+            <div class="header-icon-small">
+                <i class="fa-solid fa-chart-line"></i>
+            </div>
+            <div>
+                <h1>Hasil Analisis: {{ data.analysis.name }}</h1>
+                <p class="analysis-date">{{ data.analysis.gender }}, {{ data.analysis.age }} tahun • {{ data.analysis.analysis_date }}</p>
+            </div>
+        </div>
+
+        <!-- Main 2 Column Layout -->
+        <div class="two-column-layout">
+            
+            <!-- COLUMN 1: Score, Status, BMI, Metrics -->
+            <div class="column-one">
+                
+                <div class="score-status-row">
+                    <!-- Health Score -->
+                    <div class="score-box">
+                        <div class="circular-progress-small" data-score="{{ data.analysis.health_score }}">
+                            <svg width="120" height="120">
+                                <circle cx="60" cy="60" r="54" class="progress-bg"></circle>
+                                <circle cx="60" cy="60" r="54" class="progress-bar" id="scoreCircle"></circle>
+                            </svg>
+                            <div class="score-text-small">
+                                <span class="score-number-small">{{ data.analysis.health_score }}</span>
+                                <span class="score-label-small">Skor</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Status & BMI -->
+                    <div class="status-bmi-box">
+                        <div class="status-badge-inline {{ data.analysis.status_color }}">
+                            <i class="fa-solid fa-heart-pulse"></i>
+                            <span>{{ data.analysis.status_label }}</span>
+                        </div>
+                        <div class="bmi-inline">
+                            <i class="fa-solid fa-chart-simple"></i>
+                            <div>
+                                <span class="bmi-label">BMI</span>
+                                <span class="bmi-value">{{ data.analysis.bmi }}</span>
+                                <span class="bmi-category">{{ data.analysis.bmi_category|replace('_', ' ')|title }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Metrics in single row -->
+                <div class="metrics-row">
+                    <div class="metric-pill">
+                        <i class="fa-solid fa-weight-scale"></i>
+                        <div>
+                            <span class="pill-label">Berat</span>
+                            <span class="pill-value">{{ data.weight }} kg</span>
+                        </div>
+                    </div>
+                    <div class="metric-pill">
+                        <i class="fa-solid fa-ruler-vertical"></i>
+                        <div>
+                            <span class="pill-label">Tinggi</span>
+                            <span class="pill-value">{{ data.height }} cm</span>
+                        </div>
+                    </div>
+                    <div class="metric-pill">
+                        <i class="fa-solid fa-utensils"></i>
+                        <div>
+                            <span class="pill-label">Makan</span>
+                            <span class="pill-value">{{ data.meals }}x</span>
+                        </div>
+                    </div>
+                    <div class="metric-pill">
+                        <i class="fa-solid fa-glass-water"></i>
+                        <div>
+                            <span class="pill-label">Air</span>
+                            <span class="pill-value">{{ data.water }}L</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Additional Health Metrics -->
+                <div class="metrics-row">
+                    <div class="metric-pill metric-pill-highlight">
+                        <i class="fa-solid fa-heart-pulse"></i>
+                        <div>
+                            <span class="pill-label">Tekanan Darah</span>
+                            <span class="pill-value">{{ data.blood_pressure }}</span>
+                        </div>
+                    </div>
+                    <div class="metric-pill metric-pill-highlight">
+                        <i class="fa-solid fa-droplet-slash"></i>
+                        <div>
+                            <span class="pill-label">Gula Darah</span>
+                            <span class="pill-value">{{ data.blood_sugar }} mg/dL</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- COLUMN 2: Analysis & Recommendations -->
+            <div class="column-two">
+                
+                <!-- Analysis Bars -->
+                <div class="analysis-inline">
+                    <h3><i class="fa-solid fa-magnifying-glass-chart"></i> Analisis Detail</h3>
+                    
+                    <div class="progress-inline">
+                        <div class="progress-info">
+                            <span class="progress-name">Tekanan Darah</span>
+                            <span class="progress-value">{{ data.analysis.blood_pressure_status.score }}/100</span>
+                        </div>
+                        <div class="progress-bar-outer">
+                            <div class="progress-bar-inner bp-bar" data-width="{{ data.analysis.blood_pressure_status.score }}"></div>
+                        </div>
+                    </div>
+
+                    <div class="progress-inline">
+                        <div class="progress-info">
+                            <span class="progress-name">Gula Darah</span>
+                            <span class="progress-value">{{ data.analysis.blood_sugar_status.score }}/100</span>
+                        </div>
+                        <div class="progress-bar-outer">
+                            <div class="progress-bar-inner sugar-bar" data-width="{{ data.analysis.blood_sugar_status.score }}"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="progress-inline">
+                        <div class="progress-info">
+                            <span class="progress-name">Status Hidrasi</span>
+                            <span class="progress-value">{{ data.analysis.hydration.score }}/100</span>
+                        </div>
+                        <div class="progress-bar-outer">
+                            <div class="progress-bar-inner hydration-bar" data-width="{{ data.analysis.hydration.score }}"></div>
+                        </div>
+                    </div>
+
+                    <div class="progress-inline">
+                        <div class="progress-info">
+                            <span class="progress-name">Pola Makan</span>
+                            <span class="progress-value">{{ data.analysis.meal_pattern.score }}/100</span>
+                        </div>
+                        <div class="progress-bar-outer">
+                            <div class="progress-bar-inner meal-bar" data-width="{{ data.analysis.meal_pattern.score }}"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recommendations -->
+                <div class="recommendations-inline">
+                    <h3><i class="fa-solid fa-lightbulb"></i> Rekomendasi</h3>
+                    <p>{{ data.analysis.recommendations }}</p>
+                </div>
+
+                <!-- Action Buttons Inline -->
+                <div class="actions-inline">
+                    <button onclick="downloadPDF()" class="btn-primary btn-inline">
+                        <i class="fa-solid fa-file-pdf"></i> 
+                        Download PDF
+                    </button>
+                    <button onclick="newCheck()" class="btn-secondary btn-inline">
+                        <i class="fa-solid fa-rotate-right"></i> 
+                        Cek Lagi
+                    </button>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Disclaimer -->
+        <div class="disclaimer-inline">
+            <i class="fa-solid fa-circle-info"></i>
+            <p>Hasil ini bersifat informasi umum. Untuk kondisi medis tertentu, konsultasi dengan dokter atau ahli gizi profesional.</p>
+        </div>
+
+    </div>
+</div>
+
+<!-- jsPDF Library for PDF generation -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<!-- JavaScript -->
+<script src="results.js"></script>
+
+</body>
+</html>
