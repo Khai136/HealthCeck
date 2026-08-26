@@ -227,6 +227,45 @@ class HealthAnalyzer {
 // Initialize analyzer
 const analyzer = new HealthAnalyzer();
 
+// Helper for Soft Pastel Toast Notification (Screen Centered)
+function showToastNotification(message, type = 'warning') {
+    let container = document.getElementById('toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toast-container';
+        container.className = 'fixed inset-0 z-[100] flex items-center justify-center pointer-events-none p-4';
+        document.body.appendChild(container);
+    }
+
+    const toast = document.createElement('div');
+    toast.className = `pointer-events-auto flex items-center justify-center gap-3 px-6 py-4 rounded-2xl shadow-2xl border text-base font-semibold transition-all duration-300 transform scale-90 opacity-0 ${
+        type === 'warning' 
+            ? 'bg-white/95 backdrop-blur-md text-amber-950 border-amber-300 shadow-amber-900/15' 
+            : 'bg-white/95 backdrop-blur-md text-emerald-950 border-emerald-300 shadow-emerald-900/15'
+    }`;
+    
+    const icon = type === 'warning' ? 'warning' : 'check_circle';
+    toast.innerHTML = `
+        <span class="material-symbols-outlined text-2xl ${type === 'warning' ? 'text-amber-600' : 'text-emerald-600'}">${icon}</span>
+        <span class="text-center">${message}</span>
+    `;
+
+    container.appendChild(toast);
+
+    requestAnimationFrame(() => {
+        toast.classList.remove('scale-90', 'opacity-0');
+        toast.classList.add('scale-100', 'opacity-100');
+    });
+
+    setTimeout(() => {
+        toast.classList.remove('scale-100', 'opacity-100');
+        toast.classList.add('scale-90', 'opacity-0');
+        setTimeout(() => {
+            toast.remove();
+        }, 300);
+    }, 2800);
+}
+
 // Form validation and submission
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('healthForm');
@@ -234,6 +273,31 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const inputs = document.querySelectorAll('input[type="number"], input[type="text"]');
     const genderSelect = document.getElementById('gender');
+
+    // Navbar results link validation check
+    const resultsLinks = document.querySelectorAll('a[href="results.html"], .nav-results-link');
+    resultsLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            const savedResults = localStorage.getItem('healthResults');
+            if (!savedResults) {
+                e.preventDefault();
+                const allFieldIds = ['name', 'age', 'gender', 'weight', 'height', 'blood_pressure', 'blood_sugar', 'meals', 'water'];
+                let filledCount = 0;
+                allFieldIds.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el && el.value && String(el.value).trim() !== '') {
+                        filledCount++;
+                    }
+                });
+
+                if (filledCount === 0) {
+                    showToastNotification('Isi data terlebih dahulu', 'warning');
+                } else {
+                    showToastNotification('Lengkapi data terlebih dahulu', 'warning');
+                }
+            }
+        });
+    });
 
     // Validation rules
     const validationRules = {
@@ -325,7 +389,46 @@ document.addEventListener('DOMContentLoaded', function() {
     form.addEventListener('submit', function(e) {
         e.preventDefault();
         
-        // Validate all fields
+        const allFieldIds = ['name', 'age', 'gender', 'weight', 'height', 'blood_pressure', 'blood_sugar', 'meals', 'water'];
+        let filledCount = 0;
+        let emptyCount = 0;
+        
+        allFieldIds.forEach(id => {
+            const el = document.getElementById(id);
+            if (el && el.value && String(el.value).trim() !== '') {
+                filledCount++;
+            } else {
+                emptyCount++;
+            }
+        });
+
+        // 1. All fields are empty
+        if (filledCount === 0) {
+            showToastNotification('Isi data terlebih dahulu', 'warning');
+            return;
+        }
+
+        // 2. Data is incomplete (not all fields filled)
+        if (emptyCount > 0) {
+            inputs.forEach(input => {
+                if (!input.value) {
+                    const errorEl = document.getElementById(`${input.id}-error`);
+                    if (errorEl) errorEl.textContent = 'Kolom ini Wajib diisi';
+                    input.classList.add('invalid');
+                } else {
+                    validateField(input);
+                }
+            });
+            if (!genderSelect.value) {
+                const errorEl = document.getElementById('gender-error');
+                if (errorEl) errorEl.textContent = 'Pilih jenis kelamin';
+                genderSelect.classList.add('invalid');
+            }
+            showToastNotification('Lengkapi data terlebih dahulu', 'warning');
+            return;
+        }
+
+        // Validate all field rules (e.g. ranges & formats)
         let isValid = true;
         
         inputs.forEach(input => {
@@ -336,12 +439,15 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (!genderSelect.value) {
             const errorEl = document.getElementById('gender-error');
-            errorEl.textContent = 'Pilih jenis kelamin';
+            if (errorEl) errorEl.textContent = 'Pilih jenis kelamin';
             genderSelect.classList.add('invalid');
             isValid = false;
         }
         
-        if (!isValid) return;
+        if (!isValid) {
+            showToastNotification('Lengkapi data terlebih dahulu', 'warning');
+            return;
+        }
         
         // Show loading
         const submitBtn = document.getElementById('submitBtn');
